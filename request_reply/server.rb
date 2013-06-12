@@ -8,17 +8,20 @@ EventMachine.run do
   to_process = PQueue.new {|a,b| a[0] > b[0] }
   mutex = Mutex.new
 
-  requests_queue = channel.queue("test.messages", :exclusive => true, :auto_delete => true)
-  
+  low_requests_queue    = channel.queue("low")
+  high_requests_queue    = channel.queue("high")
 
-  requests_queue.subscribe(:ack => true) do |metadata, payload|
-
+  low_requests_queue.subscribe(:ack => true) do |metadata, payload|
     puts "Got a request."
-
-    puts "Queue job"
     
     mutex.synchronize { to_process << [0, metadata, payload] }
+  end
 
+
+  high_requests_queue.subscribe(:ack => true) do |metadata, payload|
+    puts "Got a request."
+    
+    mutex.synchronize { to_process << [10, metadata, payload] }
   end
 
 
@@ -28,8 +31,7 @@ EventMachine.run do
 
       if payload
         puts "#{payload}"
-        
-        process channel, metadata
+        process channel, metadata, payload
       else
         sleep(0.1)
       end
@@ -39,12 +41,14 @@ EventMachine.run do
   Signal.trap("INT") { connection.close { EventMachine.stop } }
 
 
-  def process channel, metadata
-    channel.default_exchange.publish("HAI THUR :D",
+  def process channel, metadata, message
+    channel.default_exchange.publish(message,
                                      :routing_key    => metadata.reply_to,
                                      :correlation_id => metadata.message_id,
                                      :mandatory      => true)
 
     EM.next_tick { metadata.ack }
+
+    sleep(1)
   end
 end

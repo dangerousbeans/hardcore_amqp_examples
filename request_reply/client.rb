@@ -4,18 +4,32 @@ EventMachine.run do
   connection = AMQP.connect
   channel    = AMQP::Channel.new(connection)
 
+  low_queue    = channel.queue("low")
+  high_queue    = channel.queue("high")
+  
+  exchange = channel.direct("")
+
   replies_queue = channel.queue("", :exclusive => true, :auto_delete => true)
   replies_queue.subscribe do |metadata, payload|
     puts "Reply: #{payload.inspect}"
   end
 
-  # request time from a peer every 3 seconds
+  messages_sent = 0
+
   EventMachine.add_periodic_timer(1.0) do
-    puts "[request] Sending a request..."
-    channel.default_exchange.publish("Hello?",
-                                     :routing_key => "test.messages",
+    channel.default_exchange.publish("LOW",
+                                     :routing_key => low_queue.name,
                                      :message_id  => Kernel.rand(10101010).to_s,
                                      :reply_to    => replies_queue.name)
+
+    channel.default_exchange.publish("HIGH",
+                                     :routing_key => high_queue.name,
+                                     :message_id  => Kernel.rand(10101010).to_s,
+                                     :reply_to    => replies_queue.name)
+
+    EventMachine.stop if messages_sent > 10
+
+    messages_sent += 1
   end
 
 
