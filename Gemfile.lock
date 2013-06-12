@@ -17,6 +17,7 @@ GEM
     debugger-linecache (1.2.0)
     debugger-ruby_core_source (1.2.2)
     eventmachine (1.0.3)
+    pqueue (2.0.2)
 
 PLATFORMS
   ruby
@@ -24,3 +25,4 @@ PLATFORMS
 DEPENDENCIES
   amqp
   debugger
+  pqueue

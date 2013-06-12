@@ -9,13 +9,17 @@ EventMachine.run do
   exchange = channel.direct("")
 
 
-  100.times do 
-    exchange.publish "LOW", :routing_key => low_queue.name
+  10.times do |i| 
+    message = "LOW #{i}"
+    puts "sending: #{message}"
+    exchange.publish message, :routing_key => low_queue.name
   end
 
   # EventMachine.add_periodic_timer(0.0001) do
-  100.times do 
-    exchange.publish "HIGH", :routing_key => high_queue.name
+  10.times do |i|
+    message = "HIGH #{i}"
+    puts "sending: #{message}"
+    exchange.publish message, :routing_key => high_queue.name
   end
   # end
    
