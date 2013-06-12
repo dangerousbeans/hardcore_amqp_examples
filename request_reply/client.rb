@@ -10,7 +10,7 @@ EventMachine.run do
   end
 
   # request time from a peer every 3 seconds
-  EventMachine.add_periodic_timer(3.0) do
+  EventMachine.add_periodic_timer(1.0) do
     puts "[request] Sending a request..."
     channel.default_exchange.publish("Hello?",
                                      :routing_key => "test.messages",
