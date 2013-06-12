@@ -16,7 +16,7 @@ EventMachine.run do
 
   messages_sent = 0
 
-  EventMachine.add_periodic_timer(1.0) do
+  timer = EventMachine.add_periodic_timer(1.0) do
     channel.default_exchange.publish("LOW",
                                      :routing_key => low_queue.name,
                                      :message_id  => Kernel.rand(10101010).to_s,
@@ -27,7 +27,7 @@ EventMachine.run do
                                      :message_id  => Kernel.rand(10101010).to_s,
                                      :reply_to    => replies_queue.name)
 
-    EventMachine.stop if messages_sent > 10
+    timer.cancel if messages_sent > 10
 
     messages_sent += 1
   end
